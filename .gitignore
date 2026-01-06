@@ -1,4 +1,5 @@
 pyproject.toml
+.env
 
 # Python-generated files
 __pycache__/
