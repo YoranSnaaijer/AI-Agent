@@ -1,6 +1,7 @@
 pyproject.toml
 .env
 calculator
+test_get_files_info.py
 
 # Python-generated files
 __pycache__/
