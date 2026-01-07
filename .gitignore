@@ -5,6 +5,7 @@ test_get_files_info.py
 test_get_file_content.py
 test_write_file.py
 test_run_python_file.py
+prompts.py
 
 # Python-generated files
 __pycache__/
