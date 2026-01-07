@@ -11,7 +11,7 @@ def get_files_info(working_directory, directory="."):
     contents_of_directory = []
     try:
         for file in os.listdir(target_directory):
-            contents_of_directory.append(f"{file}: file_size={os.path.getsize(os.path.join(target_directory, file))} bytes, is_dir={os.path.isdir(os.path.join(target_directory, file))}")
+            contents_of_directory.append(f"- {file}: file_size={os.path.getsize(os.path.join(target_directory, file))} bytes, is_dir={os.path.isdir(os.path.join(target_directory, file))}")
     except Exception as e:
         return f"Error reading directory: {e}"
-    return contents_of_directory
+    return "\n".join(contents_of_directory)
