@@ -3,6 +3,7 @@ pyproject.toml
 calculator
 test_get_files_info.py
 test_get_file_content.py
+test_write_file.py
 
 # Python-generated files
 __pycache__/
