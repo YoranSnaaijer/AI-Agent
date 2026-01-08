@@ -22,9 +22,11 @@ def run_python_file(working_directory, file_path, args=None):
         if result.returncode != 0:
             return f"Process exited with code {result.returncode}."
         else:
-            if result.stdout or result.stderr:
-                return f"STDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
-            else:
+            if result.stdout:
+                return f"STDOUT:\n{result.stdout}"
+            if result.stderr:
+                return f"STDERR:\n{result.stderr}"
+            if not result.stdout and not result.stderr:
                 return "No output produced."
     except Exception as e:
         return f"Error executing \"{file_path}\": {e}"

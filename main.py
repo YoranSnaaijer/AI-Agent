@@ -1,11 +1,12 @@
 import os
 import argparse
+import sys
 
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from prompts import system_prompt
-from call_function import available_functions
+from call_function import available_functions, call_function
 
 def main():
     # Load environment variables from .env file
@@ -24,22 +25,44 @@ def main():
     messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
     # Initialize the GenAI client
     client = genai.Client(api_key=api_key)
-    response = client.models.generate_content(model="gemini-2.5-flash", 
-                                              contents=messages, 
-                                              config=types.GenerateContentConfig(tools=[available_functions],
-                                                                                 system_instruction=system_prompt,
-                                                                                 temperature=2))
-    if args.verbose:
-        # Ensure usage metadata is available
-        if response.usage_metadata is None:
-            raise RuntimeError("Usage metadata is None")
-        print(f"User prompt: {args.user_prompt}")
-        print(f"Prompt tokens: {response.usage_metadata.prompt_token_count} \nResponse tokens: {response.usage_metadata.candidates_token_count}")
-    if response.function_calls:
-        for function_call in response.function_calls:
-            print(f"Calling function: {function_call.name}({function_call.args})")
-    else:
-        print(f"Response: \n{response.text}")
+    for _ in range(20):  # Loop can be adjusted for multiple interactions
+        response = client.models.generate_content(model="gemini-2.5-flash",
+                                                  contents=messages, 
+                                                  config=types.GenerateContentConfig(tools=[available_functions],
+                                                                                     system_instruction=system_prompt,
+                                                                                     temperature=0))
+        if response.candidates:
+            for candidate in response.candidates:
+                messages.append(candidate)
+        if args.verbose:
+            # Ensure usage metadata is available
+            if response.usage_metadata is None:
+                raise RuntimeError("Usage metadata is None")
+            print(f"User prompt: {args.user_prompt}")
+            print(f"Prompt tokens: {response.usage_metadata.prompt_token_count} \nResponse tokens: {response.usage_metadata.candidates_token_count}")
+        
+        function_results = []
+        if response.function_calls:
+            for function_call in response.function_calls:
+                function_call_result = call_function(function_call, verbose=args.verbose)
+                if function_call_result.parts is None:
+                    raise Exception("Function response has no parts")
+                if function_call_result.parts[0].function_response is None:
+                    raise Exception("Function response is None")
+                if  function_call_result.parts[0].function_response is None:
+                    raise Exception("Function response content is None")
+                else:
+                    function_results.append(function_call_result.parts[0])
+                if args.verbose:
+                    # Ensure usage metadata is available
+                    if response.usage_metadata is None:
+                        raise RuntimeError("Usage metadata is None")
+                    print(f"-> {function_call_result.parts[0].function_response.response}")
+        else:
+            print(f"Response: \n{response.text}")
+            return
+        messages.append(types.Content(role="user", parts=function_results))
+    sys.exit(1)
 
 if __name__ == "__main__":
     main()
